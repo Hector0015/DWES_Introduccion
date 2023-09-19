@@ -39,4 +39,13 @@
 
     }
     echo(str_ireplace('o','0',$nombre));
+    $url = 'http://username:password@hostname:9090/path?arg=value';
+    echo "<br>";    
+    echo parse_url($url,PHP_URL_SCHEME);
+    echo "<br>";
+    echo parse_url($url,PHP_URL_USER);
+    echo "<br>";
+    echo parse_url($url,PHP_URL_PATH);
+    echo "<br>";
+    echo parse_url($url,PHP_URL_QUERY);
     ?>
