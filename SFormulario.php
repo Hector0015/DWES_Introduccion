@@ -1,5 +1,9 @@
 <?php 
 require('CSession.php');
+session_start();
+if (isset($_SESSION['username'])){
+    header('location: SPrivada.php');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

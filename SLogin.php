@@ -1,6 +1,9 @@
 <?php
 require('CSession.php');
 session_start();
+if (isset($_SESSION['username'])){
+    header('location: SPrivada.php');
+}
 function filtrado($datos){
     $datos = trim($datos); // Elimina espacios antes y después de los datos
     $datos = stripslashes($datos); // Elimina backslashes
