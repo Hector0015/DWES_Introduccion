@@ -181,5 +181,7 @@ $sta->execute(); ?>
 
 
 </ul>
+<a href='SLogin.php'>Iniciar sesión</a>
+
 </body>
 </html>
