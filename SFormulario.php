@@ -1,77 +1,17 @@
-<?php 
+<?php
 require('CSession.php');
 session_start();
-if (isset($_SESSION['username'])){
-    header('location: SPrivada.php');
+if (isset($_SESSION['username'])) {
+   header('location: SPrivada.php');
 }
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Document</title>
-</head>
-<body>
-<h2>Registro:</h2>
+$username = $email = "";
 
-
-<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
-
-
-   Nombre:
-
-
-   <input type="text" name="username" maxlength="50"><br>
-
-
-   Email:
-
-
-   <input type="email" name="email"><br>
-
-
-   
-   Contrasenya:
-   <input type="password" name="password" maxlength="50"><br>
-
-
-   Confirmar la contrasenya:
-   <input type="password" name="password3" maxlength="50"><br>
-
-
-   <br/>
-
-
-   <input type="submit" name="submit" value="Enviar">
-
-
-</form>
-</body>
-</html>
-
-
-<?php
-
-
-
-
-function filtrado($datos){
-
-
+function filtrado($datos)
+{
    $datos = trim($datos); // Elimina espacios antes y después de los datos
-
-
    $datos = stripslashes($datos); // Elimina backslashes
-
-
    $datos = htmlspecialchars($datos); // Traduce caracteres especiales en entidades HTML
-
-
    return $datos;
-
-
 }
 
 
@@ -79,113 +19,130 @@ function filtrado($datos){
 
 
 
-if(isset($_POST["submit"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
+if (isset($_POST["submit"]) && $_SERVER["REQUEST_METHOD"] == "POST") {
 
 
    // El nombre y contraseña son campos obligatorios
 
 
-   if(empty($_POST["username"])){
+   if (empty($_POST["username"])) {
 
 
-       $errores[] = "El nombre es requerido";
-
-
+      $errores[] = "El nombre es requerido";
    }
-   if(empty($_POST["password"]) || strlen($_POST["password"]) < 5){
+   if (empty($_POST["password"]) || strlen($_POST["password"]) < 5) {
 
-    $errores[] = "La contraseña es requerida y ha de ser mayor a 5 caracteres";
-
-    }
-    if(empty($_POST["password3"]) || $_POST["password3"] != $_POST["password"]){
-        $errores[] = "La confirmación de la contraseña es necesaria, además debe ser la misma";
-    }
+      $errores[] = "La contraseña es requerida y ha de ser mayor a 5 caracteres";
+   }
+   if (empty($_POST["password3"]) || $_POST["password3"] != $_POST["password"]) {
+      $errores[] = "La confirmación de la contraseña es necesaria, además debe ser la misma";
+   }
 
    // El email es obligatorio y ha de tener formato adecuado
 
 
-   if(!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL) || empty($_POST["email"])){
+   if (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL) || empty($_POST["email"])) {
 
 
-       $errores[] = "No se ha indicado email o el formato no es correcto";
-
-
+      $errores[] = "No se ha indicado email o el formato no es correcto";
    }
    // Si el array $errores está vacío, se aceptan los datos y se asignan a variables
 
 
-   if(empty($errores)) {
+   if (empty($errores)) {
 
 
-       $username = filtrado($_POST["username"]);
-       $email = filtrado($_POST["email"]);
-       $password = filtrado($_POST["password"]);
-       $password3 = filtrado($_POST["password3"]);
-
-
-
-
+      $username = filtrado($_POST["username"]);
+      $email = filtrado($_POST["email"]);
+      $password = filtrado($_POST["password"]);
+      $password3 = filtrado($_POST["password3"]);
    }
+
+   $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+   $sta = $pdo->prepare($sql);
+   $sta->bindParam(1, $username);
+   $sta->bindParam(2, $email);
+   $sta->bindParam(3, $password);
+   try {
+      $resultado = $sta->execute();
+      if ($resultado) {
+         $_SESSION["username"] = $username;
+         header("location: SPrivada");
+      } else {
+         $errores[] = "Se ha producido un error";
+      }
+   } catch (PDOException $E) {
+      $error = $E->getMessage();
+      if (strpos($error, "users.username") !== false) {
+         $errores[] = "Ya existe un usuario con este nombre";
+      } 
+      if (strpos($error, "users.email") !== false) {
+         $errores[] = "Ya existe un usuario con este correo";
+      }
+   }
+
+ if (!empty($errores)) {
+
+
+      foreach ($errores as $error) {
+
+
+         echo  $error . "<br>";
+      }
+   }
+
+
+
 }
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
    <meta charset="UTF-8">
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Document</title>
 </head>
+
 <body>
-<?php if(isset($_POST["submit"])): ?>
+   <h2>Registro:</h2>
 
 
-<h2>Mostrar datos enviados</h2>
+   <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
 
 
-Nombre : <?= $username ?? "" ?> <br>
+      Nombre:
 
 
-Email : <?= $email ?? "" ?> <br>
-       
-Contraseña: <?= $password ?? "" ?> <br>
-
-<?php 
-$sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
-$sta = $pdo->prepare($sql);
-$sta->bindParam(1, $username);
-$sta->bindParam(2, $email);
-$sta->bindParam(3, $password);
-
-$sta->execute(); ?>
+      <input type="text" name="username" maxlength="50" value=<?= $username ?>><br>
 
 
-<?php endif; ?>
-<ul>
+      Email:
 
 
-<?php if(isset($errores)){
+      <input type="email" name="email" value=<?= $email ?>><br>
 
 
-   foreach ($errores as $error){
+
+      Contrasenya:
+      <input type="password" name="password" maxlength="50"><br>
 
 
-       echo "<li> $error </li>";
+      Confirmar la contrasenya:
+      <input type="password" name="password3" maxlength="50"><br>
 
 
-   }
+      <br />
 
 
-}
+      <input type="submit" name="submit" value="Enviar">
 
 
-?>
-
-
-</ul>
-<a href='SLogin.php'>Iniciar sesión</a>
+   </form>
+   <a href='SLogin.php'>Iniciar sesión</a>
 
 </body>
+
 </html>
+
